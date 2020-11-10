@@ -7,23 +7,34 @@ export default function UpdateProfile() {
     const emailRef = useRef()
     const passwordRef = useRef()
     const passwordConfirmRef = useRef()
-    const { currentUser } = useAuth()
+    const { currentUser, updatePassword, updateEmail } = useAuth()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const history = useHistory()
 
-    async function handleSubmit(e) {
-       /* e.preventDefault()
-
-        try {
-          setError('')
-          setLoading(true)
-          await login(emailRef.current.value, passwordRef.current.value)
-          history.push('/')
-        } catch {
-          setError('Failed to log in')
+    function handleSubmit(e) {
+        e.preventDefault()
+        if (passwordRef.current.value !== passwordConfirmRef.current.value) {
+            return setError("Passwords do nto match")
         }
-        setLoading(false)*/
+
+        const promises = []
+        setLoading(true)
+        setError('')
+        if (emailRef.current.value !== currentUser.email) {
+          promises.push(updateEmail(emailRef.current.value))  
+        }
+        if (passwordRef.current.value) {
+          promises.push(updatePassword(passwordRef.current.value))  
+        }
+
+        Promise.all(promises).then(() => {
+            history.push('/')
+        }).catch(() => {
+            setError('Failed to update account')
+        }).finally(() => {
+            setLoading(false)
+        })
         
     }
 
@@ -40,11 +51,11 @@ export default function UpdateProfile() {
                     </Form.Group> 
                     <Form.Group id="password">
                         <Form.Label>Password</Form.Label>
-                        <Form.Control type="password" ref={passwordRef} required placeholder="Leave blank to keep the same" />
+                        <Form.Control type="password" ref={passwordRef} placeholder="Leave blank to keep the same" />
                     </Form.Group>
                     <Form.Group id="password">
                         <Form.Label>Password</Form.Label>
-                        <Form.Control type="password" ref={passwordConfirmRef} required placeholder="Leave blank to keep the same" />
+                        <Form.Control type="password" ref={passwordConfirmRef} placeholder="Leave blank to keep the same" />
                     </Form.Group>
                     <Button disabled={loading} className="w-100" type="submit">Update</Button>
                   </Form>
